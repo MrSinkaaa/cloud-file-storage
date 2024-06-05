@@ -81,34 +81,6 @@ public class MinioService {
         }
     }
 
-    public List<String> getObjectsByFolder(String folderName) {
-        List<String> objects = new ArrayList<>();
-
-        try {
-            Iterable<Result<Item>> results =
-                    minioClient.listObjects(
-                            ListObjectsArgs.builder().bucket(bucketStorageName)
-                                    .prefix(folderName).recursive(false).build());
-
-            String folderPrefix = folderName.endsWith("/") ? folderName : folderName + "/";
-
-            for (Result<Item> result : results) {
-                String objectName = result.get().objectName();
-
-                if (objectName.startsWith(folderPrefix)) {
-                    String objectNameWithoutPrefix = objectName.substring(folderPrefix.length());
-                    if (!objectNameWithoutPrefix.isEmpty()) {
-                        objects.add(objectNameWithoutPrefix);
-                    }
-                }
-            }
-        } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Error getting objects by folder: {}", e.getMessage(), e);
-            throw new RuntimeException("Error getting objects by folder: ", e);
-        }
-        return objects;
-    }
-
     public void deleteFile(String fileName) {
         try {
             minioClient.removeObject(
