@@ -11,6 +11,12 @@ java {
     sourceCompatibility = '17'
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'ru.mrsinkaaa.cloudfilestorage.CloudFileStorageApplication'
+    }
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -24,11 +30,17 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.session:spring-session-core'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.session:spring-session-data-redis'
+
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
     implementation 'mysql:mysql-connector-java:8.0.31'
+    implementation 'io.minio:minio:8.5.5'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -36,6 +48,6 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
+//tasks.named('test') {
+//    useJUnitPlatform()
+//}

@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link th:href="@{/resources/css/main.css}" rel="stylesheet">
+    <title>Cloud File Storage</title>
+</head>
+<body>
+<div th:fragment="navigation" class="nav">
+    <div class="logo">Cloud File Storage</div>
+    <div th:if="${user != null}">
+        <form class="search-form" role="search" th:action="@{/search}" method="get">
+            <label class="search-label" for="search">Search for stuff</label>
+            <input class="search-input" id="search" name="query" type="search" placeholder="Search..." autofocus required/>
+        </form>
+    </div>
+    <div class="account" th:if="${user != null}">
+        <span class="account-icon"></span>
+        <p class="account-username" th:text="${user.getUsername()}"></p>
+        <form method="post" th:action="@{/logout}">
+            <button class="account-btn">Logout</button>
+        </form>
+    </div>
+    <div th:if="${user == null}">
+        <button class="account-btn" th:href="@{/login}">Log In</button>
+    </div>
+</div>
+</body>
+</html>

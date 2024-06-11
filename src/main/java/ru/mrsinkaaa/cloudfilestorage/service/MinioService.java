@@ -2,7 +2,6 @@ package ru.mrsinkaaa.cloudfilestorage.service;
 
 import io.minio.*;
 import io.minio.errors.MinioException;
-import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service

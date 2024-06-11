@@ -1,0 +1,61 @@
+version: '3.5'
+
+services:
+  minio:
+    image: minio/minio
+    restart: always
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: server /data
+
+  mysql:
+    image: mysql:8.0.36
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: cloud_storage
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+      MYSQL_ROOT_PASSWORD: admin
+
+  redis:
+    image: redis:latest
+    command: redis-server
+    volumes:
+      - redis_data:/var/lib/redis
+      - redis_data:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+
+  app:
+    build: .
+    image: cloud-file-storage-app
+    container_name: cloud-file-storage
+    tty: true
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/cloud_storage
+      - SPRING_DATASOURCE_USERNAME=appuser
+      - SPRING_DATASOURCE_PASSWORD=apppass
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - minio
+      - mysql
+      - redis
+
+volumes:
+  minio_data:
+  mysql_data:
+  redis_data:
+

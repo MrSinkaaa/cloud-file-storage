@@ -1,38 +1,42 @@
 package ru.mrsinkaaa.cloudfilestorage.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "users")
-public class User {
+@Table(name = "files")
+public class File {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, unique = true)
-    private String username;
-    private String password;
+    private String fileName;
+    private Long fileSize;
+    private String fileType;
+    private String minioObjectId;
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
-    private List<File> files;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
 
-    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
-    private List<Folder> folders;
+    @ManyToOne
+    @JoinColumn(name = "folder_id", nullable = false)
+    private Folder folderId;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
 }

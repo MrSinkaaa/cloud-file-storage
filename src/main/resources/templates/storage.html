@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cloud Storage</title>
+    <link rel="stylesheet" th:href="@{/resources/css/main.css}">
+    <script type="module" th:src="@{/resources/js/main.js}" defer></script>
+</head>
+<body>
+<nav th:insert="~{fragments/navigation.html :: navigation}"></nav>
+<main>
+    <div class="url-path">
+        <span th:each="part : ${pathLinks}">
+            <a th:href="@{/(path=${part})} " th:text="${minioRootFolderUtils.removeUserParentFolderPrefix(part) + '/'}"></a>
+        </span>
+    </div>
+    <div class="container">
+        <div class="card-zone" id="card-zone">
+            <div class="card"  th:each="folder : ${folders}" th:id="${folder.getId()}">
+                <div class="card-header">
+                    <img class="card-img" th:src="@{'/resources/images/folder.svg'}" alt="folder"/>
+                    <p class="card-title-text" th:text="${folder.getName()}"></p>
+                </div>
+            </div>
+            <div class="card"  th:each="file : ${files}" th:id="${file.getId()}">
+                <div class="card-header">
+                    <img class="card-img" th:src="@{'/resources/images/file.svg'}" alt="file"/>
+                    <p class="card-title-text" th:text="${file.getName()}"></p>
+                </div>
+            </div>
+        </div>
+        <div class="drop-zone" id="drop-zone">
+            <span class="drop-zone__prompt">Drop file here or click to upload</span>
+            <input type="file" id="fileInput" class="drop-zone__input" multiple>
+        </div>
+    </div>
+</main>
+
+
+
+<div id="context-menu" class="context-menu">
+    <ul>
+        <li id="rename">Rename</li>
+        <li id="download">Download</li>
+        <li id="delete">Delete</li>
+    </ul>
+</div>
+</body>
+</html>
