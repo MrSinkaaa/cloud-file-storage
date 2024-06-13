@@ -2,6 +2,7 @@ package ru.mrsinkaaa.cloudfilestorage.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.mrsinkaaa.cloudfilestorage.dto.UserDTO;
@@ -18,8 +19,8 @@ public class UserController {
         return "authorization";
     }
 
-    @PostMapping("/register")
-    public String registerUser(@Valid @RequestBody UserDTO userDTO) {
+    @PostMapping( "/register")
+    public String registerUser(@Valid UserDTO userDTO) {
         userService.registerUser(userDTO);
         return "redirect:/login";
     }
