@@ -51,7 +51,6 @@ const sendRequest = (url, method = 'POST') => {
     fetch(url, {
         method: method,
         headers: {
-            'Accept': 'application/json',
             'Content-Type': 'application/json'
         }
     })
