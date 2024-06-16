@@ -32,7 +32,6 @@ document.getElementById('rename').addEventListener('click', function (e) {
     let newFileName = prompt('Enter new file name', oldFileName);
 
     if (newFileName) {
-        oldFileName = newFileName;
         sendRequest('/files/rename?from=' + oldFileName + '&to=' + newFileName);
     }
 
