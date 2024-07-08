@@ -8,6 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.mrsinkaaa.cloudfilestorage.dto.UserDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.User;
+import ru.mrsinkaaa.cloudfilestorage.exception.UserAlreadyExistsException;
 import ru.mrsinkaaa.cloudfilestorage.repository.UserRepository;
 
 import java.util.Optional;
@@ -54,7 +55,7 @@ class UserServiceTest {
         userService.registerUser(userDTO);
 
         verify(userRepository).save(any(User.class));
-        verify(folderService).createFolder(any(User.class), eq("user/testuser/"), eq(null));
+        verify(folderService).createFolder(any(User.class), eq("user-testuser-files/"), eq(null));
     }
 
     @Test
@@ -70,7 +71,8 @@ class UserServiceTest {
 
         when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.of(user));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> userService.registerUser(userDTO));
-        assertEquals("Username already exists: testuser", exception.getMessage());
+        UserAlreadyExistsException exception =
+                assertThrows(UserAlreadyExistsException.class, () -> userService.registerUser(userDTO));
+        assertEquals("testuser already exists", exception.getMessage());
     }
 }
