@@ -32,7 +32,7 @@ document.getElementById('rename').addEventListener('click', function (e) {
     let newFileName = prompt('Enter new file name', oldFileName);
 
     if (newFileName) {
-        sendRequest('/files/rename?from=' + oldFileName + '&to=' + newFileName);
+        sendRequest('/files?from=' + oldFileName + '&to=' + newFileName, 'PATCH');
     }
 
 })
@@ -40,7 +40,7 @@ document.getElementById('rename').addEventListener('click', function (e) {
 document.getElementById('delete').addEventListener('click', function (e) {
     let id = document.getElementById('context-menu').dataset.targetId;
 
-    sendRequest('/files/delete?id=' + id, 'DELETE');
+    sendRequest('/files?id=' + id, 'DELETE');
 
 })
 

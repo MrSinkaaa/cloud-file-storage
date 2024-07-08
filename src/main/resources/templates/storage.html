@@ -5,17 +5,33 @@
     <title>Cloud Storage</title>
     <link rel="icon" type="image/x-icon" th:href="@{'/resources/images/favicon.ico'}">
     <link rel="stylesheet" th:href="@{/resources/css/main.css}">
-    <script type="module" th:src="@{/resources/js/main.js}" defer></script>
+    <script th:src="@{/resources/js/menu.js}" defer></script>
+    <script th:src="@{/resources/js/upload.js}" defer></script>
 </head>
 <body>
 <nav th:insert="~{fragments/navigation.html :: navigation}"></nav>
 <main>
     <div class="url-path">
+        <div>
         <span th:each="part : ${pathLinks}">
             <a th:href="@{/(path=${part})} " th:text="${minioRootFolderUtils.removeUserParentFolderPrefix(part) + '/'}"></a>
         </span>
+        </div>
+        <button class="account-btn">upload</button>
     </div>
     <div class="container">
+        <div>
+            <form id="file_upload">
+                <label for="file_input" class="upload-label">Upload file</label>
+                <input type="file" id="file_input" name="uploadFile" multiple/>
+                <button>submit</button>
+            </form>
+            <form id="folder_upload">
+                <label for="folder_input" class="upload-label">Upload folder</label>
+                <input type="file" id="folder_input" name="folder" directory webkitdirectory/>
+                <button>submit</button>
+            </form>
+        </div>
         <div class="card-zone" id="card-zone">
             <div class="card"  th:each="folder : ${folders}" th:id="${folder.getId()}">
                 <div class="card-header">
@@ -29,10 +45,6 @@
                     <p class="card-title-text" th:text="${file.getName()}"></p>
                 </div>
             </div>
-        </div>
-        <div class="drop-zone" id="drop-zone">
-            <span class="drop-zone__prompt">Drop file here or click to upload</span>
-            <input type="file" id="fileInput" class="drop-zone__input" multiple>
         </div>
     </div>
 </main>
