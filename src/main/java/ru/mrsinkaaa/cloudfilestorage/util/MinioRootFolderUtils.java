@@ -14,4 +14,12 @@ public class MinioRootFolderUtils {
         String[] folders = path.split("/");
         return folders[folders.length - 1];
     }
+
+    public static String getParentFolderByPath(String path) {
+        String[] folders = path.split("/");
+        if(folders.length > 1) {
+            return folders[folders.length - 2];
+        }
+        return path;
+    }
 }
