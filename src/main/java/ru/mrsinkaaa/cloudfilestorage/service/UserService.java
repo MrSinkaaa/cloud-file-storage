@@ -10,6 +10,8 @@ import ru.mrsinkaaa.cloudfilestorage.dto.UserDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.User;
 import ru.mrsinkaaa.cloudfilestorage.exception.UserAlreadyExistsException;
 import ru.mrsinkaaa.cloudfilestorage.repository.UserRepository;
+import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFolderService;
+import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IUserService;
 
 import java.util.Collections;
 
@@ -17,10 +19,10 @@ import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getUserRoo
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService implements UserDetailsService, IUserService {
 
     private final UserRepository userRepository;
-    private final FolderService folderService;
+    private final IFolderService folderService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
