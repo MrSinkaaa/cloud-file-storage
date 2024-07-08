@@ -2,18 +2,18 @@ package ru.mrsinkaaa.cloudfilestorage.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.mrsinkaaa.cloudfilestorage.dto.FileDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.File;
 import ru.mrsinkaaa.cloudfilestorage.entity.Folder;
+import ru.mrsinkaaa.cloudfilestorage.entity.User;
 import ru.mrsinkaaa.cloudfilestorage.exception.FileNotFoundException;
-import ru.mrsinkaaa.cloudfilestorage.exception.FolderNotFoundException;
 import ru.mrsinkaaa.cloudfilestorage.repository.FileRepository;
-import ru.mrsinkaaa.cloudfilestorage.repository.FolderRepository;
+import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFileService;
+import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFolderService;
 
 import java.util.List;
 
@@ -21,55 +21,19 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FileService {
+public class FileService implements IFileService {
 
     private final FileRepository fileRepository;
-    private final FolderRepository folderRepository;
-    private final UserService userService;
     private final MinioService minioService;
 
-
-    @Transactional
-    public File uploadFile(@AuthenticationPrincipal User user,
-                           MultipartFile uploadFile,
-                           String folderName) {
-        log.info("Starting file upload for user: {}, folder: {}", user.getUsername(), folderName);
-        var owner = userService.findByUsername(user.getUsername());
-        var folder = folderRepository.findByFolderName(folderName)
-                .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
-
-        String path = folder.getMinioObjectId() + uploadFile.getOriginalFilename();
-
-        File file = File.builder()
-                .fileName(uploadFile.getOriginalFilename())
-                .fileSize(uploadFile.getSize())
-                .fileType(uploadFile.getContentType())
-                .folderId(folder)
-                .owner(owner)
-                .minioObjectId(path)
-                .build();
-
-        minioService.uploadFile(uploadFile, path);
-        log.info("File {} uploaded to folder {}", uploadFile.getOriginalFilename(), folderName);
-        return fileRepository.save(file);
-    }
-
-    public List<FileDTO> getFilesByFolder(Long id) {
-        log.info("Fetching files for folder ID: {}", id);
-        Folder folder = folderRepository.findById(id)
-                .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
-
-        return fileRepository.findByFolderId(folder).stream()
-                .map(file -> FileDTO.builder()
-                        .name(file.getFileName())
-                        .id(file.getId())
-                        .build()).toList();
+    public File findFileByFileName(String fileName) {
+        return fileRepository.findByFileName(fileName)
+                .orElseThrow(() -> new FileNotFoundException("File does not exist"));
     }
 
     public FileDTO findByFileName(String fileName) {
         log.info("Finding file by name: {}", fileName);
-        File file = fileRepository.findByFileName(fileName)
-                .orElseThrow(() -> new FileNotFoundException("File does not exist"));
+        File file = findFileByFileName(fileName);
 
         return FileDTO.builder()
                 .id(file.getId())
@@ -79,11 +43,23 @@ public class FileService {
                 .build();
     }
 
+    public List<FileDTO> findByFolderId(Folder folderId) {
+        return fileRepository.findByFolderId(folderId).stream()
+                .map(file -> FileDTO.builder()
+                        .name(file.getFileName())
+                        .id(file.getId())
+                        .build()).toList();
+    }
+
+    public File save(File file) {
+        log.info("Saving file: {}", file.getFileName());
+        return fileRepository.save(file);
+    }
+
     @Transactional
     public File renameFile(String oldFileName, String newFileName) {
         log.info("Renaming file from {} to {}", oldFileName, newFileName);
-        File file = fileRepository.findByFileName(oldFileName)
-                .orElseThrow(() -> new FileNotFoundException("File does not exist"));
+        File file = findFileByFileName(oldFileName);
 
         minioService.renameFile(oldFileName, newFileName);
 
@@ -95,16 +71,15 @@ public class FileService {
     }
 
     @Transactional
-    public File deleteFile(@AuthenticationPrincipal User user, Long id) {
-        log.info("Deleting file ID: {} for user: {}", id, user.getUsername());
-        var owner = userService.findByUsername(user.getUsername());
+    public File deleteFile(User owner, Long id) {
+        log.info("Deleting file ID: {} for user: {}", id, owner.getUsername());
 
         File file = fileRepository.findByOwnerIdAndId(owner.getId(), id)
                 .orElseThrow(() -> new FileNotFoundException("File does not exist"));
 
         minioService.deleteFile(file.getMinioObjectId());
         fileRepository.deleteById(file.getId());
-        log.info("File {} deleted by user {}", file.getFileName(), user.getUsername());
+        log.info("File {} deleted by user {}", file.getFileName(), owner.getUsername());
         return file;
     }
 
