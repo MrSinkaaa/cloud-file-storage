@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ru.mrsinkaaa.cloudfilestorage.dto.FolderDTO;
+import ru.mrsinkaaa.cloudfilestorage.service.FileManagerService;
 import ru.mrsinkaaa.cloudfilestorage.service.FileService;
 import ru.mrsinkaaa.cloudfilestorage.service.FolderService;
 import ru.mrsinkaaa.cloudfilestorage.service.UserService;
@@ -28,6 +29,7 @@ public class PathController {
     private final FileService fileService;
     private final UserService userService;
     private final FolderService folderService;
+    private final FileManagerService fileManagerService;
 
     @GetMapping("/")
     public ModelAndView getPath(@RequestParam(value = "path", required = false) String path,
@@ -43,7 +45,7 @@ public class PathController {
         var owner = userService.findByUsername(user.getUsername());
         FolderDTO folder = folderService.findByFolderName(owner, path);
         modelAndView.addObject("folders", folderService.findSubFolders(folder.getId()));
-        modelAndView.addObject("files", fileService.getFilesByFolder(folder.getId()));
+        modelAndView.addObject("files", fileManagerService.getFilesByFolder(folder.getId()));
 
 
         List<String> pathLinks;

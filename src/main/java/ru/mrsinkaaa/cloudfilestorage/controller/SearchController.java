@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import ru.mrsinkaaa.cloudfilestorage.dto.FileDTO;
 import ru.mrsinkaaa.cloudfilestorage.dto.FolderDTO;
+import ru.mrsinkaaa.cloudfilestorage.service.FileManagerService;
 import ru.mrsinkaaa.cloudfilestorage.service.FileService;
 import ru.mrsinkaaa.cloudfilestorage.service.FolderService;
 import ru.mrsinkaaa.cloudfilestorage.service.UserService;
@@ -20,6 +21,7 @@ public class SearchController {
     private final FolderService folderService;
     private final UserService userService;
     private final FileService fileService;
+    private final FileManagerService fileManagerService;
 
     @GetMapping("/search")
     public ModelAndView search(@AuthenticationPrincipal User user,
@@ -36,7 +38,7 @@ public class SearchController {
         } else {
             FileDTO file = fileService.findByFileName(objectName);
             modelAndView.addObject("folders", folderService.findSubFolders(file.getParentFolderId()));
-            modelAndView.addObject("files", fileService.getFilesByFolder(file.getParentFolderId()));
+            modelAndView.addObject("files", fileManagerService.getFilesByFolder(file.getParentFolderId()));
         }
 
         return modelAndView;
