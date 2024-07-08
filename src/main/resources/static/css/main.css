@@ -118,6 +118,8 @@ body {
 
 .url-path {
     background-color: cornflowerblue;
+    display: flex;
+    justify-content: space-between;
     padding: 5px 0;
 }
 
@@ -137,6 +139,8 @@ body {
 .container {
     width: 90%;
     margin: 0 auto;
+    display: flex;
+
 }
 
 .card {
