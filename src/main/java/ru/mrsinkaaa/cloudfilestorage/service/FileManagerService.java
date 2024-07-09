@@ -14,6 +14,7 @@ import java.util.*;
 
 import static ru.mrsinkaaa.cloudfilestorage.util.BreadcrumbsUtils.getBreadcrumbLinks;
 import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getParentFolderByPath;
+import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.removeUserParentFolderPrefix;
 
 @Slf4j
 @Service
@@ -24,17 +25,26 @@ public class FileManagerService {
     private final FolderService folderService;
     private final MinioService minioService;
 
+    /**
+     * Uploads a file to a specified folder for a user.
+     *
+     * @param owner the owner of the file
+     * @param uploadFile the file to be uploaded
+     * @param folderName the folder to upload the file to
+     * @return the saved file entity
+     */
     @Transactional
     public File uploadFile(User owner,
                            MultipartFile uploadFile,
                            String folderName) {
-        log.info("Starting file upload for user: {}, folder: {}", owner.getUsername(), folderName);
-        var folder = folderService.findByFolderName(folderName);
+        log.info("Starting upload file {} for user: {}, folder: {}", uploadFile.getOriginalFilename(), owner.getUsername(), folderName);
+        Folder folder = folderService.findByFolderName(folderName);
 
-        String path = folder.getMinioObjectId() + uploadFile.getOriginalFilename();
+        String fileName = removeUserParentFolderPrefix(uploadFile.getOriginalFilename());
+        String path = folder.getMinioObjectId() + fileName;
 
         File file = File.builder()
-                .fileName(uploadFile.getOriginalFilename())
+                .fileName(fileName)
                 .fileSize(uploadFile.getSize())
                 .fileType(uploadFile.getContentType())
                 .folderId(folder)
@@ -43,23 +53,76 @@ public class FileManagerService {
                 .build();
 
         minioService.uploadFile(uploadFile, path);
-        log.info("File {} uploaded to folder {}", uploadFile.getOriginalFilename(), folderName);
         return fileService.save(file);
     }
 
+    /**
+     * Uploads multiple files as a folder structure.
+     *
+     * @param owner the owner of the files
+     * @param files the files to be uploaded
+     * @param parentFolderName the name of the parent folder
+     * @return the parent folder entity
+     */
     @Transactional
     public Folder uploadFolder(User owner, MultipartFile[] files, String parentFolderName) {
         log.info("Uploading folder for user: {}", owner.getUsername());
         Folder parentFolder = folderService.findByOwnerAndFolderName(owner, parentFolderName);
         log.info("Found parent folder: {}", parentFolder.getFolderName());
 
+        Set<String> folderPaths = collectFolderPathsFromFiles(files);
+        Map<String, Folder> createdFolders = createFolderStructure(owner, parentFolder, folderPaths);
+
+        for (MultipartFile file : files) {
+            String filePath = file.getOriginalFilename();
+            String folderPath = getParentFolderByPath(filePath);
+            Folder parent = createdFolders.get(folderPath + "/");
+
+            if (parent != null) {
+                uploadFile(owner, file, parent.getFolderName());
+            }
+        }
+        return parentFolder;
+    }
+
+    /**
+     * Retrieves all files in a specified folder.
+     *
+     * @param id the folder ID
+     * @return a list of file DTOs in the folder
+     */
+    public List<FileDTO> getFilesByFolder(Long id) {
+        log.info("Fetching files for folder ID: {}", id);
+        Folder folder = folderService.findByFolderId(id);
+
+        return fileService.findByFolderId(folder);
+    }
+
+    /**
+     * Collects folder paths from the given files.
+     *
+     * @param files the files to extract folder paths from
+     * @return a set of folder paths
+     */
+    private Set<String> collectFolderPathsFromFiles(MultipartFile[] files) {
         Set<String> folderPaths = new HashSet<>();
         for (MultipartFile file : files) {
             List<String> foldersName = getBreadcrumbLinks(file.getOriginalFilename());
             folderPaths.addAll(foldersName);
         }
         log.info("Collected folder paths from files: {}", folderPaths);
+        return folderPaths;
+    }
 
+    /**
+     * Creates the folder structure based on the given folder paths.
+     *
+     * @param owner the owner of the folders
+     * @param parentFolder the parent folder under which new folders will be created
+     * @param folderPaths the paths of the folders to be created
+     * @return a map of created folder paths to folder entities
+     */
+    private Map<String, Folder> createFolderStructure(User owner, Folder parentFolder, Set<String> folderPaths) {
         Map<String, Folder> createdFolders = new HashMap<>();
         for (String path : folderPaths) {
             String[] parts = path.split("/");
@@ -77,23 +140,6 @@ public class FileManagerService {
                 }
             }
         }
-
-        for (MultipartFile file : files) {
-            String filePath = file.getOriginalFilename();
-            String folderPath = getParentFolderByPath(filePath);
-            Folder parent = createdFolders.get(folderPath + "/");
-
-            if (parent != null) {
-                uploadFile(owner, file, parent.getFolderName());
-            }
-        }
-        return parentFolder;
-    }
-
-    public List<FileDTO> getFilesByFolder(Long id) {
-        log.info("Fetching files for folder ID: {}", id);
-        Folder folder = folderService.findByFolderId(id);
-
-        return fileService.findByFolderId(folder);
+        return createdFolders;
     }
 }
