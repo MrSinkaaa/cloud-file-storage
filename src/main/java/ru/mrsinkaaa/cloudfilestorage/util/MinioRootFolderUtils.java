@@ -6,10 +6,6 @@ public class MinioRootFolderUtils {
         return "user-" + username + "-files/";
     }
 
-    public static String removeUserRootFolderPrefix(String path, String username) {
-        return path.substring(getUserRootFolderPrefix(username).length());
-    }
-
     public static String removeUserParentFolderPrefix(String path) {
         String[] folders = path.split("/");
         return folders[folders.length - 1];
