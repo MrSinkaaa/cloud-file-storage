@@ -103,7 +103,6 @@ public class FolderService implements IFolderService {
         }
 
         minioService.createFolder(folder.getMinioObjectId());
-        log.info("Created folder: {}{}", parentFolderName, folderName);
         folderRepository.save(folder);
         return folder;
     }

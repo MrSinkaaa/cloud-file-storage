@@ -52,7 +52,6 @@ public class FileService implements IFileService {
     }
 
     public File save(File file) {
-        log.info("Saving file: {}", file.getFileName());
         return fileRepository.save(file);
     }
 
