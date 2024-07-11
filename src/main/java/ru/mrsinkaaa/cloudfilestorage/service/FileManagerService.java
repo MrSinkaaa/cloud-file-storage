@@ -6,11 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.mrsinkaaa.cloudfilestorage.dto.FileDTO;
+import ru.mrsinkaaa.cloudfilestorage.dto.FolderDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.File;
 import ru.mrsinkaaa.cloudfilestorage.entity.Folder;
 import ru.mrsinkaaa.cloudfilestorage.entity.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.mrsinkaaa.cloudfilestorage.util.BreadcrumbsUtils.getBreadcrumbLinks;
 import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getParentFolderByPath;
@@ -96,6 +98,31 @@ public class FileManagerService {
         Folder folder = folderService.findByFolderId(id);
 
         return fileService.findByFolderId(folder);
+    }
+
+    /**
+     * Deletes a folder and all its contents (subfolders and files).
+     *
+     * @param owner the owner of the folder
+     * @param folderId the ID of the folder to be deleted
+     * @return the deleted folder entity
+     */
+    @Transactional
+    public Folder deleteFolder(User owner, Long folderId) {
+        log.info("Deleting folder ID: {}", folderId);
+        Folder folder = folderService.findByFolderId(folderId);
+
+        Set<FileDTO> filesToDelete = new HashSet<>(getFilesByFolder(folderId));
+        for(FolderDTO subFolder : folderService.findSubFolders(folder.getId())) {
+            filesToDelete.addAll(getFilesByFolder(subFolder.getId()));
+        }
+
+        for (FileDTO file : filesToDelete) {
+            fileService.deleteFile(owner, file.getId());
+        }
+
+        folderService.deleteFolder(owner, folder);
+        return folder;
     }
 
     /**

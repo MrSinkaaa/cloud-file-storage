@@ -80,6 +80,15 @@ public class FolderService implements IFolderService {
     }
 
     @Override
+    public void deleteFolder(User owner, Folder folder) {
+        log.info("Deleting folder: {} for user: {}", folder.getFolderName(), owner.getUsername());
+
+        folderRepository.delete(folder);
+        minioService.deleteFile(folder.getMinioObjectId());
+        log.info("Folder deleted: {}", folder.getFolderName());
+    }
+
+    @Override
     @Transactional
     public Folder createFolder(User owner, String folderName, String parentFolderName) {
         log.info("Creating folder: {} for user: {}", folderName, owner.getUsername());
