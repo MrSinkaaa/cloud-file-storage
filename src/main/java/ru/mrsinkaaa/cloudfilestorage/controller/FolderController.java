@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,13 +41,23 @@ public class FolderController {
 
 
     @PostMapping("/create")
-    public String createFolder(@RequestParam("folderName") String folderName,
+    public ResponseEntity<?> createFolder(@RequestParam("folderName") String folderName,
                                @RequestParam("parentFolder") String parentFolder,
                                @AuthenticationPrincipal User user) {
 
         var owner = userService.findByUsername(user.getUsername());
         folderService.createFolder(owner, folderName, parentFolder);
 
-        return "redirect:/?path=" + (parentFolder == null ? getUserRootFolderPrefix(user.getUsername()) : parentFolder);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteFolder(@RequestParam("folderId") Long folderId,
+                               @AuthenticationPrincipal User user) {
+
+        var owner = userService.findByUsername(user.getUsername());
+        fileManagerService.deleteFolder(owner, folderId);
+        return ResponseEntity.ok().build();
     }
 }
