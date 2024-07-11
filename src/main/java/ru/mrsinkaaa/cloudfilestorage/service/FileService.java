@@ -2,10 +2,8 @@ package ru.mrsinkaaa.cloudfilestorage.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import ru.mrsinkaaa.cloudfilestorage.dto.FileDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.File;
 import ru.mrsinkaaa.cloudfilestorage.entity.Folder;
@@ -13,7 +11,6 @@ import ru.mrsinkaaa.cloudfilestorage.entity.User;
 import ru.mrsinkaaa.cloudfilestorage.exception.FileNotFoundException;
 import ru.mrsinkaaa.cloudfilestorage.repository.FileRepository;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFileService;
-import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFolderService;
 
 import java.util.List;
 
@@ -28,6 +25,11 @@ public class FileService implements IFileService {
 
     public File findFileByFileName(String fileName) {
         return fileRepository.findByFileName(fileName)
+                .orElseThrow(() -> new FileNotFoundException("File does not exist"));
+    }
+
+    public File findFileByOwnerIdAndId(Long ownerId, Long id) {
+        return fileRepository.findByOwnerIdAndId(ownerId, id)
                 .orElseThrow(() -> new FileNotFoundException("File does not exist"));
     }
 
@@ -73,8 +75,7 @@ public class FileService implements IFileService {
     public File deleteFile(User owner, Long id) {
         log.info("Deleting file ID: {} for user: {}", id, owner.getUsername());
 
-        File file = fileRepository.findByOwnerIdAndId(owner.getId(), id)
-                .orElseThrow(() -> new FileNotFoundException("File does not exist"));
+        File file = findFileByOwnerIdAndId(owner.getId(), id);
 
         minioService.deleteFile(file.getMinioObjectId());
         fileRepository.deleteById(file.getId());
