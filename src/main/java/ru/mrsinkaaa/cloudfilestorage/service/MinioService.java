@@ -63,21 +63,6 @@ public class MinioService {
         }
     }
 
-    public GetObjectResponse getObjectByName(String fileName) {
-        try {
-            return minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(bucketStorageName)
-                            .object(fileName)
-                            .build()
-            );
-
-        } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Error getting object by name: {}", e.getMessage(), e);
-            throw new RuntimeException("Error getting object by name: ", e);
-        }
-    }
-
     public void deleteFile(String fileName) {
         try {
             minioClient.removeObject(
