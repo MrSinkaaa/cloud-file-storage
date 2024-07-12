@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.mrsinkaaa.cloudfilestorage.exception.FileDownloadException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,6 +44,23 @@ public class MinioService {
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.error("Error with algorithm or key: {}", e.getMessage(), e);
             throw new RuntimeException(e);
+        }
+    }
+
+    public InputStream downloadFile(String filePath) {
+        try {
+            InputStream inputStream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketStorageName)
+                            .object(filePath)
+                            .build());
+
+            log.info("File downloaded from MinIO: {}", filePath);
+
+            return inputStream;
+        } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
+            log.error("Error downloading file from MinIO: {}", e.getMessage(), e);
+            throw new FileDownloadException("Error downloading file from MinIO.");
         }
     }
 

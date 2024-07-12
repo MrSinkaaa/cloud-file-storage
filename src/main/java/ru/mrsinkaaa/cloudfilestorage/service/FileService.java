@@ -12,6 +12,7 @@ import ru.mrsinkaaa.cloudfilestorage.exception.FileNotFoundException;
 import ru.mrsinkaaa.cloudfilestorage.repository.FileRepository;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFileService;
 
+import java.io.InputStream;
 import java.util.List;
 
 
@@ -51,6 +52,14 @@ public class FileService implements IFileService {
                         .name(file.getFileName())
                         .id(file.getId())
                         .build()).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public InputStream downloadFile(User owner, Long id) {
+        log.info("Downloading file ID: {} for user: {}", id, owner.getUsername());
+
+        File file = findFileByOwnerIdAndId(owner.getId(), id);
+        return minioService.downloadFile(file.getMinioObjectId());
     }
 
     public File save(File file) {

@@ -37,11 +37,16 @@ document.getElementById('rename').addEventListener('click', function (e) {
 
 })
 
+document.getElementById('download').addEventListener('click', function (e) {
+    let id = document.getElementById('context-menu').dataset.targetId;
+
+    sendRequest(`/files?id=${id}`, 'GET');
+})
+
 document.getElementById('delete').addEventListener('click', function (e) {
     let id = document.getElementById('context-menu').dataset.targetId;
 
     sendRequest('/files?id=' + id, 'DELETE');
-
 })
 
 // send request to server

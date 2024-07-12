@@ -2,6 +2,10 @@ package ru.mrsinkaaa.cloudfilestorage.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
@@ -13,6 +17,8 @@ import ru.mrsinkaaa.cloudfilestorage.service.FileService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFileService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IUserService;
 
+import java.io.InputStream;
+
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -22,6 +28,23 @@ public class FileController {
     private final IFileService fileService;
     private final IUserService userService;
     private final FileManagerService fileManagerService;
+
+    @GetMapping
+    public ResponseEntity<Resource> downloadFile(@RequestParam("id") Long fileId,
+                                                 @AuthenticationPrincipal User user) {
+
+        var owner = userService.findByUsername(user.getUsername());
+        File file = fileService.findFileByOwnerIdAndId(owner.getId(), fileId);
+
+        InputStream inputStream = fileService.downloadFile(owner, fileId);
+        Resource resource = new InputStreamResource(inputStream);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, file.getFileType())
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.getFileSize()))
+                .body(resource);
+    }
 
     @PostMapping
     public String uploadFile(@RequestParam("file") MultipartFile uploadFile,
