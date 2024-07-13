@@ -154,6 +154,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     transition: all var(--dur) var(--bez);
     transition-property: box-shadow;
+    cursor: pointer;
 }
 
 .card:hover {
