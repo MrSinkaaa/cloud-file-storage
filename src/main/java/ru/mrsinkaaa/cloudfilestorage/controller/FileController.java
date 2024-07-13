@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -41,8 +42,8 @@ public class FileController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
-                .header(HttpHeaders.CONTENT_TYPE, file.getFileType())
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.getFileSize()))
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(file.getFileSize())
                 .body(resource);
     }
 

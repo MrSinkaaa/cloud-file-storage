@@ -40,7 +40,7 @@ document.getElementById('rename').addEventListener('click', function (e) {
 document.getElementById('download').addEventListener('click', function (e) {
     let id = document.getElementById('context-menu').dataset.targetId;
 
-    sendRequest(`/files?id=${id}`, 'GET');
+    downloadFile(`/files?id=${id}`);
 })
 
 document.getElementById('delete').addEventListener('click', function (e) {
@@ -61,6 +61,45 @@ const sendRequest = (url, method = 'POST') => {
         .then(response => response.json())
         .then(data => console.log('Success ' + data.toString()))
         .catch(error => console.error('Error:', error));
+}
+
+const downloadFile = (url) => {
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/octet-stream'
+        },
+        responseType: 'blob'
+    })
+        .then(response => {
+            return response.blob().then(blob => {
+                return {
+                    blob: blob,
+                    headers: response.headers
+                };
+            });
+        })
+        .then(obj => {
+            const url = window.URL.createObjectURL(obj.blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Extract filename from response headers if possible
+            const disposition = obj.headers.get('Content-Disposition');
+            let filename = '';
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            a.download = filename || 'downloaded_file';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(err => console.error('File download failed', err));
 }
 
 // Function to get the value of a query parameter from a URL
