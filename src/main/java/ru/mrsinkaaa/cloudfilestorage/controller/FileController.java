@@ -59,9 +59,11 @@ public class FileController {
     }
 
     @PatchMapping
-    public String renameFile(@RequestParam("from") String oldName,
-                                   @RequestParam("to") String newName) {
-        File file = fileService.renameFile(oldName, newName);
+    public String renameFile(@RequestParam("id") Long id,
+                                   @RequestParam("newName") String newName,
+                             @AuthenticationPrincipal User user) {
+        var owner = userService.findByUsername(user.getUsername());
+        File file = fileService.renameFile(owner, id, newName);
 
         return "redirect:/?path=" + file.getFolderId().getMinioObjectId();
     }
