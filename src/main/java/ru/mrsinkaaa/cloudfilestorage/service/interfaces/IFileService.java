@@ -17,6 +17,6 @@ public interface IFileService {
     File findFileByOwnerIdAndId(Long ownerId, Long id);
     List<FileDTO> findByFolderId(Folder folderId);
     InputStream downloadFile(User owner, Long id);
-    File renameFile(String oldFileName, String newFileName);
+    File renameFile(User owner, Long id, String newFileName);
     File deleteFile(User user, Long id);
 }
