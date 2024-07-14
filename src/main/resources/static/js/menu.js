@@ -8,45 +8,57 @@ document.addEventListener('click', function (e) {
 document.addEventListener('contextmenu', function (e) {
     if (e.target.closest('.card')) {
         e.preventDefault();
-        let contextMenu = document.getElementById('context-menu');
+        const contextMenu = document.getElementById('context-menu');
         contextMenu.style.display = 'block';
         contextMenu.style.left = e.pageX + 'px';
         contextMenu.style.top = e.pageY + 'px';
 
         contextMenu.dataset.targetCard = e.target.closest('.card').querySelector('.card-title-text').textContent;
         contextMenu.dataset.targetId = e.target.closest('.card').id;
+        contextMenu.dataset.type = e.target.closest('.card').type;
     }
 })
 
 document.addEventListener('dblclick', function (e) {
     if (e.target.closest('.card')) {
-        let fileName = e.target.closest('.card').querySelector('.card-title-text').textContent;
-        let filePath = getQueryParam(window.location, 'path');
+        const fileName = e.target.closest('.card').querySelector('.card-title-text').textContent;
+        const filePath = getQueryParam(window.location, 'path');
         window.location.assign('?path=' + filePath + fileName);
     }
 })
 
 // menu actions
 document.getElementById('rename').addEventListener('click', function (e) {
-    let oldFileName = document.getElementById('context-menu').dataset.targetCard;
-    let newFileName = prompt('Enter new file name', oldFileName);
+    const oldFileName = document.getElementById('context-menu').dataset.targetCard;
+    const id = document.getElementById('context-menu').dataset.targetId;
+    const type = document.getElementById('context-menu').dataset.type;
+    const newFileName = prompt('Enter new file name', oldFileName);
 
-    if (newFileName) {
-        sendRequest('/files?from=' + oldFileName + '&to=' + newFileName, 'PATCH');
+    if(newFileName) {
+        if(type === 'file') {
+            sendRequest('/files?id=' + id + '&newName=' + newFileName, 'PATCH');
+        } else {
+            sendRequest('/folder/rename?id=' + id + '&newFolderName=' + newFileName, 'PATCH');
+        }
     }
 
 })
 
-document.getElementById('download').addEventListener('click', function (e) {
-    let id = document.getElementById('context-menu').dataset.targetId;
+document.getElementById('delete').addEventListener('click', function (e) {
+    const id = document.getElementById('context-menu').dataset.targetId;
+    const type = document.getElementById('context-menu').dataset.type;
 
-    downloadFile(`/files?id=${id}`);
+    if(type === 'file') {
+        sendRequest('/files?id=' + id, 'DELETE');
+    } else {
+        sendRequest('/folder/delete?id=' + id, 'DELETE');
+    }
 })
 
-document.getElementById('delete').addEventListener('click', function (e) {
-    let id = document.getElementById('context-menu').dataset.targetId;
+document.getElementById('download').addEventListener('click', function (e) {
+    const id = document.getElementById('context-menu').dataset.targetId;
 
-    sendRequest('/files?id=' + id, 'DELETE');
+    downloadFile(`/files?id=${id}`);
 })
 
 // send request to server

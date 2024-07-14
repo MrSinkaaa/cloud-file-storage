@@ -28,16 +28,6 @@ public class FolderService implements IFolderService {
     private final MinioService minioService;
 
     @Override
-    public Folder findByOwnerAndFolderName(User owner, String folderName) {
-        log.info("Finding folder with name: {} for user: {}", folderName, owner.getUsername());
-        return folderRepository.findByOwnerAndFolderName(owner, folderName)
-                .orElseThrow(() -> {
-                    log.error("Folder with name: {} not found for user: {}", folderName, owner.getUsername());
-                    return new FolderNotFoundException("Folder not found");
-                });
-    }
-
-    @Override
     public Folder findByFolderId(Long id) {
         return folderRepository.findById(id)
                 .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
@@ -48,6 +38,22 @@ public class FolderService implements IFolderService {
         log.info("Finding folder by name: {}", folderName);
         return folderRepository.findByFolderName(folderName)
                 .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
+    }
+    @Override
+    public Folder findByOwnerAndFolderName(User owner, String folderName) {
+        log.info("Finding folder with name: {} for user: {}", folderName, owner.getUsername());
+        return folderRepository.findByOwnerAndFolderName(owner, folderName)
+                .orElseThrow(() -> {
+                    log.error("Folder with name: {} not found for user: {}", folderName, owner.getUsername());
+                    return new FolderNotFoundException("Folder not found");
+                });
+    }
+
+    public Folder findyByOwnerAndFolderId(User owner, Long folderId) {
+        log.info("Finding folder by ID: {} for user: {}", folderId, owner.getUsername());
+
+        return folderRepository.findByIdAndOwner(folderId, owner)
+               .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
     }
 
     @Override
@@ -77,6 +83,22 @@ public class FolderService implements IFolderService {
                         .parentFolderId(folder.getParentFolder().getId())
                         .build())
                 .toList();
+    }
+
+    @Transactional
+    public Folder renameFolder(User owner, Long folderId, String newFolderName) {
+        Folder folder = findyByOwnerAndFolderId(owner, folderId);
+        String oldFolderName = folder.getFolderName();
+
+        log.info("Renaming folder from {} to {}", oldFolderName, newFolderName);
+
+        String newMinioObjectId = folder.getMinioObjectId() + newFolderName;
+        minioService.renameFile(folder.getMinioObjectId(), newMinioObjectId);
+
+        folder.setMinioObjectId(newMinioObjectId);
+        folder.setFolderName(newFolderName);
+        folderRepository.save(folder);
+        return folder;
     }
 
     @Override

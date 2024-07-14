@@ -51,6 +51,8 @@ public class FileService implements IFileService {
                 .map(file -> FileDTO.builder()
                         .name(file.getFileName())
                         .id(file.getId())
+                        .minioObjectId(file.getMinioObjectId())
+                        .parentFolderId(file.getFolderId().getId())
                         .build()).toList();
     }
 
@@ -67,13 +69,15 @@ public class FileService implements IFileService {
     }
 
     @Transactional
-    public File renameFile(String oldFileName, String newFileName) {
+    public File renameFile(User owner, Long id, String newFileName) {
+        File file = findFileByOwnerIdAndId(owner.getId(), id);
+        String oldFileName = file.getFileName();
         log.info("Renaming file from {} to {}", oldFileName, newFileName);
-        File file = findFileByFileName(oldFileName);
 
-        minioService.renameFile(oldFileName, newFileName);
+        String newMinioObjectId = file.getFolderId().getMinioObjectId() + newFileName;
+        minioService.renameFile(file.getMinioObjectId(),newMinioObjectId);
 
-        file.setMinioObjectId(newFileName);
+        file.setMinioObjectId(newMinioObjectId);
         file.setFileName(newFileName);
         log.info("File {} renamed to {}", oldFileName, newFileName);
         fileRepository.save(file);

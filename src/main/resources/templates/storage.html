@@ -17,7 +17,6 @@
             <a th:href="@{/(path=${part})} " th:text="${minioRootFolderUtils.removeUserParentFolderPrefix(part) + '/'}"></a>
         </span>
         </div>
-        <button class="account-btn">upload</button>
     </div>
     <div class="container">
         <div>
@@ -33,13 +32,13 @@
             </form>
         </div>
         <div class="card-zone" id="card-zone">
-            <div class="card"  th:each="folder : ${folders}" th:id="${folder.getId()}">
+            <div class="card"  th:each="folder : ${folders}" th:id="${folder.getId()}" type="folder">
                 <div class="card-header">
                     <img class="card-img" th:src="@{'/resources/images/folder.svg'}" alt="folder"/>
                     <p class="card-title-text" th:text="${folder.getName()}"></p>
                 </div>
             </div>
-            <div class="card"  th:each="file : ${files}" th:id="${file.getId()}">
+            <div class="card"  th:each="file : ${files}" th:id="${file.getId()}" type="file">
                 <div class="card-header">
                     <img class="card-img" th:src="@{'/resources/images/file.svg'}" alt="file"/>
                     <p class="card-title-text" th:text="${file.getName()}"></p>

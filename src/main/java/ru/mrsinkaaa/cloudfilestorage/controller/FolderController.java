@@ -6,17 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.mrsinkaaa.cloudfilestorage.service.FileManagerService;
-import ru.mrsinkaaa.cloudfilestorage.service.FolderService;
 import ru.mrsinkaaa.cloudfilestorage.service.UserService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFolderService;
-
-import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getUserRootFolderPrefix;
 
 @Slf4j
 @Controller
@@ -51,9 +45,19 @@ public class FolderController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/rename")
+    public ResponseEntity<?> renameFolder(@RequestParam("id") Long folderId,
+                               @RequestParam("newFolderName") String newFolderName,
+                               @AuthenticationPrincipal User user) {
+        var owner = userService.findByUsername(user.getUsername());
+        fileManagerService.renameFolder(owner, folderId, newFolderName);
+
+        return ResponseEntity.ok().build();
+    }
+
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteFolder(@RequestParam("folderId") Long folderId,
+    public ResponseEntity<?> deleteFolder(@RequestParam("id") Long folderId,
                                @AuthenticationPrincipal User user) {
 
         var owner = userService.findByUsername(user.getUsername());

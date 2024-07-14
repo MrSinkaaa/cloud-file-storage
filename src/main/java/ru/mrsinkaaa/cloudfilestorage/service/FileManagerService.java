@@ -101,6 +101,42 @@ public class FileManagerService {
     }
 
     /**
+     * Renames a folder and updates the paths of all its subfolders and files.
+     *
+     * @param owner the owner of the folder
+     * @param folderId the ID of the folder to be renamed
+     * @param newFolderName the new name for the folder
+     * @return the renamed folder entity
+     */
+    public Folder renameFolder(User owner, Long folderId, String newFolderName) {
+        log.info("Renaming folder ID: {}, new name: {}", folderId, newFolderName);
+
+        Folder folder = folderService.findByFolderId(folderId);
+
+        Set<FileDTO> filesToRenamePath = new HashSet<>(getFilesByFolder(folderId));
+        Set<FolderDTO> subFoldersToRenamePath = new HashSet<>(folderService.findSubFolders(folder.getId()));
+
+        for(FolderDTO subFolder : folderService.findSubFolders(folder.getId())) {
+            subFoldersToRenamePath.add(subFolder);
+            filesToRenamePath.addAll(getFilesByFolder(subFolder.getId()));
+        }
+
+        for (FileDTO file : filesToRenamePath) {
+            String filePath = file.getMinioObjectId();
+            String newFilePath = filePath.replace(folder.getFolderName(), newFolderName);
+            fileService.renameFile(owner, file.getId(), newFilePath);
+        }
+
+        for(FolderDTO folderDTO : subFoldersToRenamePath) {
+            String folderPath = folderDTO.getMinioObjectId();
+            String newFolderPath = folderPath.replace(folder.getFolderName(), newFolderName);
+            folderService.renameFolder(owner, folderDTO.getId(), newFolderPath);
+        }
+
+        return folder;
+    }
+
+    /**
      * Deletes a folder and all its contents (subfolders and files).
      *
      * @param owner the owner of the folder
