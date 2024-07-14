@@ -22,7 +22,7 @@ public class MinioService {
 
     private final MinioClient minioClient;
 
-    @Value("${minio.bucket.name}")
+    @Value("${minio.bucket-name}")
     private String bucketStorageName;
     private static final String OCTET_STREAM_CONTENT_TYPE = "application/octet-stream";
 
