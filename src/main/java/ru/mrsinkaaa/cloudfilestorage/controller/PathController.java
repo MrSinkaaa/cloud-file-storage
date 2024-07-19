@@ -8,7 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import ru.mrsinkaaa.cloudfilestorage.config.RamConfig;
 import ru.mrsinkaaa.cloudfilestorage.dto.FolderDTO;
+import ru.mrsinkaaa.cloudfilestorage.dto.RamUsageDTO;
 import ru.mrsinkaaa.cloudfilestorage.service.FileManagerService;
 import ru.mrsinkaaa.cloudfilestorage.service.FileService;
 import ru.mrsinkaaa.cloudfilestorage.service.FolderService;
@@ -31,6 +33,8 @@ public class PathController {
     private final FolderService folderService;
     private final FileManagerService fileManagerService;
 
+    private final RamConfig ramConfig;
+
     @GetMapping("/")
     public ModelAndView getPath(@RequestParam(value = "path", required = false) String path,
                                 @AuthenticationPrincipal User user) {
@@ -47,9 +51,12 @@ public class PathController {
         modelAndView.addObject("folders", folderService.findSubFolders(folder.getId()));
         modelAndView.addObject("files", fileManagerService.getFilesByFolder(folder.getId()));
 
+        double usedRam = fetchRAMUsage(fileService.getTotalUsedRamByUser(owner.getId()), ramConfig.getAvailableRamInBytes());
+        modelAndView.addObject("usedRam", usedRam);
+
 
         List<String> pathLinks;
-        if(folder.getParentFolderId() != null) {
+        if (folder.getParentFolderId() != null) {
             pathLinks = getBreadcrumbLinks(folder.getMinioObjectId());
         } else {
             pathLinks = getBreadcrumbLinks(path);
@@ -59,4 +66,11 @@ public class PathController {
 
         return modelAndView;
     }
+
+    private double fetchRAMUsage(RamUsageDTO ramUsageDTO, long availableRamInBytes) {
+        long usedRam = ramUsageDTO.getTotalUsedRam();
+        double percentage = ( usedRam / (double) availableRamInBytes) * 100;
+        return Math.round(percentage * 100.0) / 100.0;
+    }
+
 }
