@@ -15,7 +15,7 @@ document.addEventListener('contextmenu', function (e) {
 
         contextMenu.dataset.targetCard = e.target.closest('.card').querySelector('.card-title-text').textContent;
         contextMenu.dataset.targetId = e.target.closest('.card').id;
-        contextMenu.dataset.type = e.target.closest('.card').type;
+        contextMenu.dataset.type = e.target.closest('.card').dataset.type;
     }
 })
 
@@ -58,7 +58,9 @@ document.getElementById('delete').addEventListener('click', function (e) {
 document.getElementById('download').addEventListener('click', function (e) {
     const id = document.getElementById('context-menu').dataset.targetId;
 
-    downloadFile(`/files?id=${id}`);
+    if(type === 'file') {
+        downloadFile(`/files?id=${id}`);
+    }
 })
 
 // send request to server
@@ -70,9 +72,9 @@ const sendRequest = (url, method = 'POST') => {
             'Content-Type': 'application/json'
         }
     })
-        .then(response => response.json())
-        .then(data => console.log('Success ' + data.toString()))
-        .catch(error => console.error('Error:', error));
+        .then(response => {
+            return response;
+        })
 }
 
 const downloadFile = (url) => {
