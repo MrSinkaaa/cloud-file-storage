@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mrsinkaaa.cloudfilestorage.dto.FileDTO;
+import ru.mrsinkaaa.cloudfilestorage.dto.RamUsageDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.File;
 import ru.mrsinkaaa.cloudfilestorage.entity.Folder;
 import ru.mrsinkaaa.cloudfilestorage.entity.User;
@@ -24,26 +25,14 @@ public class FileService implements IFileService {
     private final FileRepository fileRepository;
     private final MinioService minioService;
 
-    public File findFileByFileName(String fileName) {
-        return fileRepository.findByFileName(fileName)
+    public File findByOwnerAndFileName(User owner, String fileName) {
+        return fileRepository.findByOwnerAndFileName(owner, fileName)
                 .orElseThrow(() -> new FileNotFoundException("File does not exist"));
     }
 
     public File findFileByOwnerIdAndId(Long ownerId, Long id) {
         return fileRepository.findByOwnerIdAndId(ownerId, id)
                 .orElseThrow(() -> new FileNotFoundException("File does not exist"));
-    }
-
-    public FileDTO findByFileName(String fileName) {
-        log.info("Finding file by name: {}", fileName);
-        File file = findFileByFileName(fileName);
-
-        return FileDTO.builder()
-                .id(file.getId())
-                .name(file.getFileName())
-                .minioObjectId(file.getMinioObjectId())
-                .parentFolderId(file.getFolderId().getId())
-                .build();
     }
 
     public List<FileDTO> findByFolderId(Folder folderId) {
@@ -84,6 +73,21 @@ public class FileService implements IFileService {
         return file;
     }
 
+    public File replaceFile(User owner, Long id, Folder newParentFolder) {
+        File file = findFileByOwnerIdAndId(owner.getId(), id);
+        String oldMinioObjectId = file.getMinioObjectId();
+
+        log.info("Replacing file: {} in folder: {} with new folder: {}", id, file.getFolderId().getId(), newParentFolder.getId());
+
+        String newMinioObjectId = newParentFolder.getMinioObjectId() + file.getFileName();
+        minioService.renameFile(oldMinioObjectId, newMinioObjectId);
+
+        file.setMinioObjectId(newMinioObjectId);
+        file.setFolderId(newParentFolder);
+        fileRepository.save(file);
+        return file;
+    }
+
     @Transactional
     public File deleteFile(User owner, Long id) {
         log.info("Deleting file ID: {} for user: {}", id, owner.getUsername());
@@ -94,6 +98,11 @@ public class FileService implements IFileService {
         fileRepository.deleteById(file.getId());
         log.info("File {} deleted by user {}", file.getFileName(), owner.getUsername());
         return file;
+    }
+
+    @Override
+    public RamUsageDTO getTotalUsedRamByUser(Long ownerId) {
+        return new RamUsageDTO(ownerId, fileRepository.getTotalUsedRamByUser(ownerId));
     }
 
 }
