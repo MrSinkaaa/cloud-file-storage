@@ -57,6 +57,7 @@ document.getElementById('delete').addEventListener('click', function (e) {
 
 document.getElementById('download').addEventListener('click', function (e) {
     const id = document.getElementById('context-menu').dataset.targetId;
+    const type = document.getElementById('context-menu').dataset.type;
 
     if(type === 'file') {
         downloadFile(`/files?id=${id}`);
@@ -72,8 +73,15 @@ const sendRequest = (url, method = 'POST') => {
             'Content-Type': 'application/json'
         }
     })
-        .then(response => {
-            return response;
+        .then(response => response.json().then(data => ({
+            status: response.status,
+            body: data
+
+        })))
+        .then(({status, body}) => {
+            if (status !== 200) {
+                displayErrorModal({status, message: body.message})
+            }
         })
 }
 
@@ -113,7 +121,7 @@ const downloadFile = (url) => {
             a.click();
             window.URL.revokeObjectURL(url);
         })
-        .catch(err => console.error('File download failed', err));
+        .catch(error => console.log(error));
 }
 
 // Function to get the value of a query parameter from a URL
@@ -122,4 +130,23 @@ const getQueryParam = (url, paramName) => {
     const params = new URLSearchParams(urlObj.search);
     return params.get(paramName);
 
+}
+
+
+const displayErrorModal = (error) => {
+    document.getElementById('error-status').innerText = error.status;
+    document.getElementById('error-message').innerText = error.message;
+    document.getElementById('error-modal').style.display = 'block';
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById('error-modal');
+
+    if(modal) {
+        modal.style.display = 'block';
+    }
+})
+
+const closeModal = () => {
+    document.getElementById('error-modal').style.display = 'none';
 }

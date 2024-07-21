@@ -11,44 +11,69 @@
 <body>
 <nav th:insert="~{fragments/navigation.html :: navigation}"></nav>
 <main>
-    <div class="url-path">
-        <div>
-        <span th:each="part : ${pathLinks}">
-            <a th:href="@{/(path=${part})} " th:text="${minioRootFolderUtils.removeUserParentFolderPrefix(part) + '/'}"></a>
-        </span>
-        </div>
-    </div>
     <div class="container">
-        <div>
-            <form id="file_upload">
-                <label for="file_input" class="upload-label">Upload file</label>
-                <input type="file" id="file_input" name="uploadFile" multiple/>
-                <button>submit</button>
-            </form>
-            <form id="folder_upload">
-                <label for="folder_input" class="upload-label">Upload folder</label>
-                <input type="file" id="folder_input" name="folder" directory webkitdirectory/>
-                <button>submit</button>
-            </form>
-        </div>
-        <div class="card-zone" id="card-zone">
-            <div class="card"  th:each="folder : ${folders}" th:id="${folder.getId()}" type="folder">
-                <div class="card-header">
-                    <img class="card-img" th:src="@{'/resources/images/folder.svg'}" alt="folder"/>
-                    <p class="card-title-text" th:text="${folder.getName()}"></p>
-                </div>
+        <div class="left-side">
+            <div class="main-btn">
+                <form class="upload-form" id="file_upload">
+                    <label for="file_input">Upload file</label>
+                    <input type="file" id="file_input" name="uploadFile" multiple/>
+                    <button>Submit</button>
+                </form>
+                <form class="upload-form" id="folder_upload">
+                    <label for="folder_input">Upload folder</label>
+                    <input type="file" id="folder_input" name="folder" directory webkitdirectory/>
+                    <button>Submit</button>
+                </form>
+                <form class="upload-form" id="create_folder">
+                    <label for="folder_input">Create folder</label>
+                    <input type="file" id="create_input" name="folder" directory webkitdirectory/>
+                    <button>Submit</button>
+                </form>
             </div>
-            <div class="card"  th:each="file : ${files}" th:id="${file.getId()}" type="file">
-                <div class="card-header">
-                    <img class="card-img" th:src="@{'/resources/images/file.svg'}" alt="file"/>
-                    <p class="card-title-text" th:text="${file.getName()}"></p>
+            <div class="ram-usage">
+                <div class="ram-label">RAM Usage</div>
+                <div class="progress-bar">
+                    <div class="progress" id="ram-progress" th:style="'width:' + ${usedRam} + '%'"></div>
+                </div>
+                <div class="ram-percentage" id="ram-percentage" th:text="${usedRam} + '%'"></div>
+            </div>
+        </div>
+        <div class="right-side">
+            <div class="url-path">
+                <ul class="breadcrumb">
+                    <li th:each="part : ${pathLinks}">
+                        <a th:href="@{/(path=${part})} "
+                           th:text="${minioRootFolderUtils.removeUserParentFolderPrefix(part) + '/'}"></a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-zone" id="card-zone">
+                <div class="card" th:each="folder : ${folders}" th:id="${folder.getId()}" data-type="folder">
+                    <div class="card-header">
+                        <img class="card-img" th:src="@{'/resources/images/folder.svg'}" alt="folder"/>
+                        <p class="card-title-text" th:text="${folder.getName()}"></p>
+                    </div>
+                </div>
+                <div class="card" th:each="file : ${files}" th:id="${file.getId()}" data-type="file">
+                    <div class="card-header">
+                        <img class="card-img" th:src="@{'/resources/images/file.svg'}" alt="file"/>
+                        <p class="card-title-text" th:text="${file.getName()}"></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
-
+<div id="error-modal" class="modal" th:if="${error != null}">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h2>
+            Error <span id="error-status" th:text="${error.status}"></span>
+        </h2>
+        <p id="error-message" th:text="${error.message}"></p>
+    </div>
+</div>
 
 <div id="context-menu" class="context-menu">
     <ul>

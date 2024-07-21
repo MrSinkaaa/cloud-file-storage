@@ -15,7 +15,6 @@
         </form>
     </div>
     <div class="account" th:if="${user != null}">
-        <span class="account-icon"></span>
         <p class="account-username" th:text="${user.getUsername()}"></p>
         <form method="post" th:action="@{/logout}">
             <button class="account-btn">Logout</button>
