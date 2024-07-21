@@ -14,7 +14,6 @@ import java.util.List;
 
 public interface IFileService {
 
-    FileDTO findByFileName(String fileName);
     File findFileByOwnerIdAndId(Long ownerId, Long id);
     List<FileDTO> findByFolderId(Folder folderId);
     InputStream downloadFile(User owner, Long id);

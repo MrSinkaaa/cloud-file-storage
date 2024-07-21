@@ -15,6 +15,6 @@ public interface IFolderService {
     Folder findByFolderId(Long id);
     FolderDTO findByFolderName(User owner, String folderName);
     List<FolderDTO> findSubFolders(Long id);
-    void deleteFolder(User owner, Folder folder);
+    void deleteFolder(User owner, Long folderId);
     Folder createFolder(User owner, String folderName, String parentFolderName);
 }
