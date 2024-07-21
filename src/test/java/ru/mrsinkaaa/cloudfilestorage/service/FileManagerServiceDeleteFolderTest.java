@@ -101,7 +101,7 @@ public class FileManagerServiceDeleteFolderTest {
 
         // Verify interactions
         verify(fileService, times(2)).deleteFile(eq(owner), anyLong());
-        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder));
+        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder.getId()));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class FileManagerServiceDeleteFolderTest {
 
         // Verify interactions
         verify(fileService, times(0)).deleteFile(eq(owner), anyLong());
-        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder));
+        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder.getId()));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class FileManagerServiceDeleteFolderTest {
 
         // Verify interactions
         verify(fileService, times(2)).deleteFile(eq(owner), anyLong());
-        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder));
+        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder.getId()));
     }
 
     @Test
@@ -146,7 +146,7 @@ public class FileManagerServiceDeleteFolderTest {
 
         // Verify interactions
         verify(fileService, times(0)).deleteFile(eq(owner), anyLong());
-        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder));
+        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder.getId()));
     }
 
     @Test
@@ -181,7 +181,7 @@ public class FileManagerServiceDeleteFolderTest {
         verify(fileService, times(2)).deleteFile(eq(owner), anyLong()); // From subFolder2
         verify(fileService, times(2)).deleteFile(eq(owner), anyLong()); // From subFolder3
 
-        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder));
+        verify(folderService, times(1)).deleteFolder(eq(owner), eq(folder.getId()));
     }
 }
 
