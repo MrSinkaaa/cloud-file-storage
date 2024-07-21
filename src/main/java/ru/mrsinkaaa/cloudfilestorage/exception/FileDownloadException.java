@@ -1,8 +1,10 @@
 package ru.mrsinkaaa.cloudfilestorage.exception;
 
-public class FileDownloadException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class FileDownloadException extends ApplicationException {
 
     public FileDownloadException(String message) {
-        super(message);
+        super(message, HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 }

@@ -12,6 +12,8 @@ import ru.mrsinkaaa.cloudfilestorage.service.FileManagerService;
 import ru.mrsinkaaa.cloudfilestorage.service.UserService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFolderService;
 
+import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getUserRootFolderPrefix;
+
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -26,6 +28,10 @@ public class FolderController {
     public ResponseEntity<?> uploadFolder(@RequestParam("folder") MultipartFile[] folder,
                                           @RequestParam("parentFolder") String parentFolder,
                                           @AuthenticationPrincipal User user) {
+
+        if(parentFolder == null || parentFolder.isEmpty()) {
+            parentFolder = getUserRootFolderPrefix(user.getUsername());
+        }
 
         var owner = userService.findByUsername(user.getUsername());
         fileManagerService.uploadFolder(owner, folder, parentFolder);
