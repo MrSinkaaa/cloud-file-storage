@@ -36,10 +36,9 @@ public class FileManagerService {
      * @return the saved file entity
      */
     @Transactional
-    public File uploadFile(User owner,
-                           MultipartFile uploadFile,
-                           String folderName) {
-        log.info("Starting upload file {} for user: {}, folder: {}", uploadFile.getOriginalFilename(), owner.getUsername(), folderName);
+    public File uploadFile(User owner, MultipartFile uploadFile, String folderName) {
+        log.info("Starting upload file {} for user: {}, folder: {}",
+                uploadFile.getOriginalFilename(), owner.getUsername(), folderName);
         Folder folder = folderService.findByFolderName(folderName);
 
         String fileName = removeUserParentFolderPrefix(uploadFile.getOriginalFilename());
@@ -120,18 +119,13 @@ public class FileManagerService {
             subFoldersToRenamePath.add(subFolder);
             filesToRenamePath.addAll(getFilesByFolder(subFolder.getId()));
         }
+        Folder newFolder = folderService.renameFolder(owner, folderId, newFolderName);
 
-        for (FileDTO file : filesToRenamePath) {
-            String filePath = file.getMinioObjectId();
-            String newFilePath = filePath.replace(folder.getFolderName(), newFolderName);
-            fileService.renameFile(owner, file.getId(), newFilePath);
-        }
+        subFoldersToRenamePath.forEach(subFolder ->
+                folderService.replaceFolder(owner, subFolder.getId(), newFolder));
 
-        for(FolderDTO folderDTO : subFoldersToRenamePath) {
-            String folderPath = folderDTO.getMinioObjectId();
-            String newFolderPath = folderPath.replace(folder.getFolderName(), newFolderName);
-            folderService.renameFolder(owner, folderDTO.getId(), newFolderPath);
-        }
+        filesToRenamePath.forEach(file ->
+                fileService.replaceFile(owner, file.getId(), newFolder));
 
         return folder;
     }
@@ -149,15 +143,18 @@ public class FileManagerService {
         Folder folder = folderService.findByFolderId(folderId);
 
         Set<FileDTO> filesToDelete = new HashSet<>(getFilesByFolder(folderId));
+        Set<FolderDTO> subFoldersToDelete = new HashSet<>(folderService.findSubFolders(folder.getId()));
         for(FolderDTO subFolder : folderService.findSubFolders(folder.getId())) {
             filesToDelete.addAll(getFilesByFolder(subFolder.getId()));
         }
 
-        for (FileDTO file : filesToDelete) {
-            fileService.deleteFile(owner, file.getId());
-        }
+        filesToDelete.forEach(file ->
+                fileService.deleteFile(owner, file.getId()));
 
-        folderService.deleteFolder(owner, folder);
+        subFoldersToDelete.forEach(subFolder ->
+                folderService.deleteFolder(owner, subFolder.getId()));
+
+        folderService.deleteFolder(owner, folder.getId());
         return folder;
     }
 
