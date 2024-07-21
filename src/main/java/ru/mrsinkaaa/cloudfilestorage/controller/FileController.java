@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.mrsinkaaa.cloudfilestorage.entity.File;
 import ru.mrsinkaaa.cloudfilestorage.service.FileManagerService;
-import ru.mrsinkaaa.cloudfilestorage.service.FileService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFileService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IUserService;
 
 import java.io.InputStream;
+
+import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getUserRootFolderPrefix;
 
 @Slf4j
 @Controller
@@ -51,6 +52,10 @@ public class FileController {
     public String uploadFile(@RequestParam("file") MultipartFile uploadFile,
                                    @AuthenticationPrincipal User user,
                                    @RequestParam("folderName") String folderName) {
+
+        if(folderName == null || folderName.isEmpty()) {
+            folderName = getUserRootFolderPrefix(user.getUsername());
+        }
 
         var owner = userService.findByUsername(user.getUsername());
         File file = fileManagerService.uploadFile(owner, uploadFile, folderName);
