@@ -2,22 +2,16 @@ package ru.mrsinkaaa.cloudfilestorage.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import ru.mrsinkaaa.cloudfilestorage.dto.FolderDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.Folder;
 import ru.mrsinkaaa.cloudfilestorage.entity.User;
 import ru.mrsinkaaa.cloudfilestorage.exception.FolderNotFoundException;
 import ru.mrsinkaaa.cloudfilestorage.repository.FolderRepository;
-import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFileService;
 import ru.mrsinkaaa.cloudfilestorage.service.interfaces.IFolderService;
 
 import java.util.*;
-
-import static ru.mrsinkaaa.cloudfilestorage.util.BreadcrumbsUtils.getBreadcrumbLinks;
-import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getParentFolderByPath;
 
 @Slf4j
 @Service
@@ -49,7 +43,7 @@ public class FolderService implements IFolderService {
                 });
     }
 
-    public Folder findyByOwnerAndFolderId(User owner, Long folderId) {
+    public Folder findByOwnerAndFolderId(User owner, Long folderId) {
         log.info("Finding folder by ID: {} for user: {}", folderId, owner.getUsername());
 
         return folderRepository.findByIdAndOwner(folderId, owner)
@@ -87,12 +81,12 @@ public class FolderService implements IFolderService {
 
     @Transactional
     public Folder renameFolder(User owner, Long folderId, String newFolderName) {
-        Folder folder = findyByOwnerAndFolderId(owner, folderId);
+        Folder folder = findByOwnerAndFolderId(owner, folderId);
         String oldFolderName = folder.getFolderName();
 
         log.info("Renaming folder from {} to {}", oldFolderName, newFolderName);
 
-        String newMinioObjectId = folder.getMinioObjectId() + newFolderName;
+        String newMinioObjectId = folder.getParentFolder().getMinioObjectId() + newFolderName;
         minioService.renameFile(folder.getMinioObjectId(), newMinioObjectId);
 
         folder.setMinioObjectId(newMinioObjectId);
@@ -101,8 +95,27 @@ public class FolderService implements IFolderService {
         return folder;
     }
 
+    public Folder replaceFolder(User owner, Long id, Folder newParentFolder) {
+        Folder folder = findByOwnerAndFolderId(owner, id);
+        String oldMinioObjectId = folder.getMinioObjectId();
+
+        log.info("Replacing folder: {} in folder: {} with new folder: {}",
+                folder.getFolderName(),
+                folder.getParentFolder().getMinioObjectId(),
+                newParentFolder.getMinioObjectId());
+
+        String newMinioObjectId = newParentFolder.getMinioObjectId() + folder.getFolderName();
+        minioService.renameFile(oldMinioObjectId, newMinioObjectId);
+
+        folder.setMinioObjectId(newMinioObjectId);
+        folder.setParentFolder(newParentFolder);
+        folderRepository.save(folder);
+        return folder;
+    }
+
     @Override
-    public void deleteFolder(User owner, Folder folder) {
+    public void deleteFolder(User owner, Long folderId) {
+        Folder folder = findByOwnerAndFolderId(owner, folderId);
         log.info("Deleting folder: {} for user: {}", folder.getFolderName(), owner.getUsername());
 
         folderRepository.delete(folder);
