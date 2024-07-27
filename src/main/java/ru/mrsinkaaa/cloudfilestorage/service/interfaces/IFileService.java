@@ -14,10 +14,14 @@ import java.util.List;
 
 public interface IFileService {
 
+    File findByOwnerAndFileName(User owner, String fileName);
     File findFileByOwnerIdAndId(Long ownerId, Long id);
     List<FileDTO> findByFolderId(Folder folderId);
+    List<File> findFilesByOwnerAndFileNameContainingIgnoreCase(User owner, String fileName);
     InputStream downloadFile(User owner, Long id);
+    File save(File file);
     File renameFile(User owner, Long id, String newFileName);
+    File replaceFile(User owner, Long id, Folder newParentFolder);
     File deleteFile(User user, Long id);
     RamUsageDTO getTotalUsedRamByUser(Long ownerId);
 }

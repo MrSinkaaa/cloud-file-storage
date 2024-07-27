@@ -7,14 +7,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import ru.mrsinkaaa.cloudfilestorage.service.StorageService;
+import ru.mrsinkaaa.cloudfilestorage.service.StorageViewService;
 import ru.mrsinkaaa.cloudfilestorage.service.UserService;
 
 @Controller
 @RequiredArgsConstructor
 public class StorageController {
 
-    private final StorageService storageService;
+    private final StorageViewService storageViewService;
     private final UserService userService;
 
     @GetMapping("/")
@@ -22,7 +22,7 @@ public class StorageController {
                                 @AuthenticationPrincipal User user) {
 
         var owner = userService.findByUsername(user.getUsername());
-        return storageService.getMainPathModelAndView(owner, path);
+        return storageViewService.getMainPathModelAndView(owner, path);
     }
 
     @GetMapping("/search")
@@ -30,6 +30,6 @@ public class StorageController {
                                @RequestParam("query") String objectName) {
 
         var owner = userService.findByUsername(user.getUsername());
-        return storageService.search(owner, objectName);
+        return storageViewService.search(owner, objectName);
     }
 }

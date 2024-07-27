@@ -45,6 +45,10 @@ public class FolderController {
                                @RequestParam("parentFolder") String parentFolder,
                                @AuthenticationPrincipal User user) {
 
+        if(parentFolder == null || parentFolder.isEmpty()) {
+            parentFolder = getUserRootFolderPrefix(user.getUsername());
+        }
+
         var owner = userService.findByUsername(user.getUsername());
         folderService.createFolder(owner, folderName, parentFolder);
 

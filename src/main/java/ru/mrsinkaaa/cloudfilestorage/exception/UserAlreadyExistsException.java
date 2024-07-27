@@ -3,10 +3,9 @@ package ru.mrsinkaaa.cloudfilestorage.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.CONFLICT)
-public class UserAlreadyExistsException extends RuntimeException {
+public class UserAlreadyExistsException extends ApplicationException {
 
     public UserAlreadyExistsException(String message) {
-        super(message);
+        super(message, HttpStatus.CONFLICT.value());
     }
 }

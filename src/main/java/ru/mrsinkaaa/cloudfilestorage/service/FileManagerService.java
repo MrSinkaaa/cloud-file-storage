@@ -5,14 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.mrsinkaaa.cloudfilestorage.config.RamConfig;
 import ru.mrsinkaaa.cloudfilestorage.dto.FileDTO;
 import ru.mrsinkaaa.cloudfilestorage.dto.FolderDTO;
 import ru.mrsinkaaa.cloudfilestorage.entity.File;
 import ru.mrsinkaaa.cloudfilestorage.entity.Folder;
 import ru.mrsinkaaa.cloudfilestorage.entity.User;
+import ru.mrsinkaaa.cloudfilestorage.exception.InsufficientStorageException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static ru.mrsinkaaa.cloudfilestorage.util.BreadcrumbsUtils.getBreadcrumbLinks;
 import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getParentFolderByPath;
@@ -27,6 +28,8 @@ public class FileManagerService {
     private final FolderService folderService;
     private final MinioService minioService;
 
+    private final RamConfig ramConfig;
+
     /**
      * Uploads a file to a specified folder for a user.
      *
@@ -37,6 +40,10 @@ public class FileManagerService {
      */
     @Transactional
     public File uploadFile(User owner, MultipartFile uploadFile, String folderName) {
+        if (isUserOutOfSpace(owner, uploadFile.getSize())) {
+            throw new InsufficientStorageException("Does not have enough space to upload the file. Please free up some space.");
+        }
+
         log.info("Starting upload file {} for user: {}, folder: {}",
                 uploadFile.getOriginalFilename(), owner.getUsername(), folderName);
         Folder folder = folderService.findByFolderName(folderName);
@@ -67,6 +74,13 @@ public class FileManagerService {
      */
     @Transactional
     public Folder uploadFolder(User owner, MultipartFile[] files, String parentFolderName) {
+        long filesSize = Arrays.stream(files)
+                .mapToLong(MultipartFile::getSize)
+                .sum();
+        if (isUserOutOfSpace(owner, filesSize)) {
+            throw new InsufficientStorageException("Does not have enough space to upload the folder. Please free up some space.");
+        }
+
         log.info("Uploading folder for user: {}", owner.getUsername());
         Folder parentFolder = folderService.findByOwnerAndFolderName(owner, parentFolderName);
         log.info("Found parent folder: {}", parentFolder.getFolderName());
@@ -119,13 +133,16 @@ public class FileManagerService {
             subFoldersToRenamePath.add(subFolder);
             filesToRenamePath.addAll(getFilesByFolder(subFolder.getId()));
         }
-        Folder newFolder = folderService.renameFolder(owner, folderId, newFolderName);
+
+        folderService.renameFolder(owner, folderId, newFolderName);
 
         subFoldersToRenamePath.forEach(subFolder ->
-                folderService.replaceFolder(owner, subFolder.getId(), newFolder));
+                folderService.replaceFolder(owner, subFolder.getId(),
+                        folderService.findByFolderId(subFolder.getParentFolderId())));
 
         filesToRenamePath.forEach(file ->
-                fileService.replaceFile(owner, file.getId(), newFolder));
+                fileService.replaceFile(owner, file.getId(),
+                        folderService.findByFolderId(file.getParentFolderId())));
 
         return folder;
     }
@@ -201,5 +218,11 @@ public class FileManagerService {
             }
         }
         return createdFolders;
+    }
+
+    private boolean isUserOutOfSpace(User owner, long fileSize) {
+        long totalUsedRam = fileService.getTotalUsedRamByUser(owner.getId()).getTotalUsedRam();
+        long freeSpace = ramConfig.getAvailableRamInBytes() - totalUsedRam;
+        return freeSpace < fileSize;
     }
 }

@@ -43,11 +43,27 @@ public class FolderService implements IFolderService {
                 });
     }
 
+    @Override
     public Folder findByOwnerAndFolderId(User owner, Long folderId) {
         log.info("Finding folder by ID: {} for user: {}", folderId, owner.getUsername());
 
         return folderRepository.findByIdAndOwner(folderId, owner)
                .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
+    }
+
+    @Override
+    public FolderDTO findByOwnerAndMinioObjectId(User owner, String minioObjectId) {
+        log.info("Finding folder by Minio Object ID: {} for user: {}", minioObjectId, owner.getUsername());
+
+        Folder folder = folderRepository.findByOwnerAndMinioObjectId(owner, minioObjectId)
+               .orElseThrow(() -> new FolderNotFoundException("Folder not found"));
+
+        return FolderDTO.builder()
+               .id(folder.getId())
+               .name(folder.getFolderName())
+               .minioObjectId(folder.getMinioObjectId())
+               .parentFolderId(folder.getParentFolder() == null ? folder.getId() : folder.getParentFolder().getId())
+               .build();
     }
 
     @Override
@@ -79,6 +95,20 @@ public class FolderService implements IFolderService {
                 .toList();
     }
 
+    @Override
+    public List<FolderDTO> findFoldersByOwnerAndFolderNameContainingIgnoreCase(User owner, String folderName) {
+        log.info("Finding folders by name: {} for user: {}", folderName, owner.getUsername());
+        return folderRepository.findFoldersByOwnerAndFolderNameContainingIgnoreCase(owner, folderName).stream()
+               .map(folder -> FolderDTO.builder()
+                       .id(folder.getId())
+                       .name(folder.getFolderName())
+                       .minioObjectId(folder.getMinioObjectId())
+                       .parentFolderId(folder.getParentFolder() == null? folder.getId() : folder.getParentFolder().getId())
+                       .build())
+               .toList();
+    }
+
+    @Override
     @Transactional
     public Folder renameFolder(User owner, Long folderId, String newFolderName) {
         Folder folder = findByOwnerAndFolderId(owner, folderId);
@@ -95,6 +125,7 @@ public class FolderService implements IFolderService {
         return folder;
     }
 
+    @Override
     public Folder replaceFolder(User owner, Long id, Folder newParentFolder) {
         Folder folder = findByOwnerAndFolderId(owner, id);
         String oldMinioObjectId = folder.getMinioObjectId();
@@ -127,6 +158,10 @@ public class FolderService implements IFolderService {
     @Transactional
     public Folder createFolder(User owner, String folderName, String parentFolderName) {
         log.info("Creating folder: {} for user: {}", folderName, owner.getUsername());
+
+        if(!folderName.contains("/")) {
+            folderName += "/";
+        }
 
         Folder folder = new Folder();
         folder.setFolderName(folderName);

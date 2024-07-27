@@ -22,10 +22,12 @@
 body {
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 nav {
-    height: 5vh;
+    height: 4vh;
 }
 
 .nav {
@@ -41,6 +43,11 @@ nav {
     font-size: 20px;
     font-weight: bold;
     color: white;
+}
+
+.logo a {
+    color: var(--text-color);
+    text-decoration: none;
 }
 
 .account {
@@ -250,6 +257,27 @@ nav {
     width: 100px;
 }
 
+.search-result {
+    width: 96%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+
+    padding: 5px 10px;
+    margin: 20px auto;
+
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    transition: all var(--dur) var(--bez);
+    transition-property: box-shadow;
+}
+
+.search-item {
+    margin: 10px;
+}
+
 .context-menu {
     display: none;
     position: absolute;
@@ -301,9 +329,14 @@ nav {
 }
 
 .upload-form label {
+    height: 20px;
+    width: 105px;
+
     margin: 0 10px;
     font-size: 16px;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: #333;
     cursor: pointer;
     transition: color 0.3s ease;

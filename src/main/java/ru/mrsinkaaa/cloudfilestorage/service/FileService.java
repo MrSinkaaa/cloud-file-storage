@@ -25,16 +25,19 @@ public class FileService implements IFileService {
     private final FileRepository fileRepository;
     private final MinioService minioService;
 
+    @Override
     public File findByOwnerAndFileName(User owner, String fileName) {
         return fileRepository.findByOwnerAndFileName(owner, fileName)
                 .orElseThrow(() -> new FileNotFoundException("File does not exist"));
     }
 
+    @Override
     public File findFileByOwnerIdAndId(Long ownerId, Long id) {
         return fileRepository.findByOwnerIdAndId(ownerId, id)
                 .orElseThrow(() -> new FileNotFoundException("File does not exist"));
     }
 
+    @Override
     public List<FileDTO> findByFolderId(Folder folderId) {
         return fileRepository.findByFolderId(folderId).stream()
                 .map(file -> FileDTO.builder()
@@ -45,6 +48,12 @@ public class FileService implements IFileService {
                         .build()).toList();
     }
 
+    @Override
+    public List<File> findFilesByOwnerAndFileNameContainingIgnoreCase(User owner, String fileName) {
+        return fileRepository.findFilesByOwnerAndFileNameContainingIgnoreCase(owner, fileName);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public InputStream downloadFile(User owner, Long id) {
         log.info("Downloading file ID: {} for user: {}", id, owner.getUsername());
@@ -53,10 +62,12 @@ public class FileService implements IFileService {
         return minioService.downloadFile(file.getMinioObjectId());
     }
 
+    @Override
     public File save(File file) {
         return fileRepository.save(file);
     }
 
+    @Override
     @Transactional
     public File renameFile(User owner, Long id, String newFileName) {
         File file = findFileByOwnerIdAndId(owner.getId(), id);
@@ -73,6 +84,7 @@ public class FileService implements IFileService {
         return file;
     }
 
+    @Override
     public File replaceFile(User owner, Long id, Folder newParentFolder) {
         File file = findFileByOwnerIdAndId(owner.getId(), id);
         String oldMinioObjectId = file.getMinioObjectId();
@@ -88,6 +100,7 @@ public class FileService implements IFileService {
         return file;
     }
 
+    @Override
     @Transactional
     public File deleteFile(User owner, Long id) {
         log.info("Deleting file ID: {} for user: {}", id, owner.getUsername());
@@ -102,7 +115,10 @@ public class FileService implements IFileService {
 
     @Override
     public RamUsageDTO getTotalUsedRamByUser(Long ownerId) {
-        return new RamUsageDTO(ownerId, fileRepository.getTotalUsedRamByUser(ownerId));
+        long usedRam = fileRepository.getTotalUsedRamByUser(ownerId) == null ?
+                0 : fileRepository.getTotalUsedRamByUser(ownerId);
+
+        return new RamUsageDTO(ownerId, usedRam);
     }
 
 }

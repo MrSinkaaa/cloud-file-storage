@@ -14,6 +14,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
     Optional<File> findByOwnerAndFileName(User owner, String fileName);
     Optional<File> findByOwnerIdAndId(Long ownerId, Long id);
     List<File> findByFolderId(Folder folderId);
+    List<File> findFilesByOwnerAndFileNameContainingIgnoreCase(User owner, String fileName);
 
     @Query("SELECT SUM(f.fileSize) FROM File f WHERE f.owner.id = :ownerId")
     Long getTotalUsedRamByUser(Long ownerId);

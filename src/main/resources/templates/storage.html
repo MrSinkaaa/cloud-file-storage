@@ -9,24 +9,24 @@
     <script th:src="@{/resources/js/upload.js}" defer></script>
 </head>
 <body>
-<nav th:insert="~{fragments/navigation.html :: navigation}"></nav>
+<nav th:replace="~{fragments/navigation.html :: navigation}"></nav>
 <main>
     <div class="container">
         <div class="left-side">
             <div class="main-btn">
                 <form class="upload-form" id="file_upload">
                     <label for="file_input">Upload file</label>
-                    <input type="file" id="file_input" name="uploadFile" multiple/>
+                    <input type="file" id="file_input" name="uploadFile" required multiple/>
                     <button>Submit</button>
                 </form>
                 <form class="upload-form" id="folder_upload">
                     <label for="folder_input">Upload folder</label>
-                    <input type="file" id="folder_input" name="folder" directory webkitdirectory/>
+                    <input type="file" id="folder_input" name="folder" required directory webkitdirectory/>
                     <button>Submit</button>
                 </form>
                 <form class="upload-form" id="create_folder">
-                    <label for="folder_input">Create folder</label>
-                    <input type="file" id="create_input" name="folder" directory webkitdirectory/>
+                    <label for="create_input">Create folder</label>
+                    <input type="file" id="create_input" name="folderName" placeholder="Enter folder name" required/>
                     <button>Submit</button>
                 </form>
             </div>
@@ -39,16 +39,15 @@
             </div>
         </div>
         <div class="right-side">
-            <div class="url-path">
-                <ul class="breadcrumb">
-                    <li th:each="part : ${pathLinks}">
-                        <a th:href="@{/(path=${part})} "
-                           th:text="${minioRootFolderUtils.removeUserParentFolderPrefix(part) + '/'}"></a>
-                    </li>
-                </ul>
+            <div th:replace="~{fragments/url-path :: url-path (pathLinks=${pathLinks}, utils=${minioUtils})}"></div>
+            <div class="search-result" th:unless="${foldersPathLinks} == null">
+                <div class="search-item" th:each="url : ${foldersPathLinks}">
+                    <div th:replace="~{fragments/url-path :: url-path (pathLinks=${url}, utils=${minioUtils})}"></div>
+                </div>
             </div>
-            <div class="card-zone" id="card-zone">
-                <div class="card" th:each="folder : ${folders}" th:id="${folder.getId()}" data-type="folder">
+            <div class="card-zone" th:if="${foldersPathLinks == null}">
+                <div class="card" th:each="folder : ${folders}" th:id="${folder.getId()}" data-type="folder"
+                     th:data-path="${folder.getMinioObjectId()}">
                     <div class="card-header">
                         <img class="card-img" th:src="@{'/resources/images/folder.svg'}" alt="folder"/>
                         <p class="card-title-text" th:text="${folder.getName()}"></p>
@@ -68,9 +67,7 @@
 <div id="error-modal" class="modal" th:if="${error != null}">
     <div class="modal-content">
         <span class="close-button" onclick="closeModal()">&times;</span>
-        <h2>
-            Error <span id="error-status" th:text="${error.status}"></span>
-        </h2>
+        <h2>Error</h2>
         <p id="error-message" th:text="${error.message}"></p>
     </div>
 </div>

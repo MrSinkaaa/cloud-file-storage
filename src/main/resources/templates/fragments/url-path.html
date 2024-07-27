@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link th:href="@{/resources/css/main.css}" rel="stylesheet">
+    <title>Cloud File Storage</title>
+</head>
+<body>
+<div class="url-path" th:fragment="url-path (pathLinks, utils)">
+    <ul class="breadcrumb">
+        <li th:each="part : ${pathLinks}">
+            <a th:href="@{/(path=${part})} "
+               th:text="${utils.removeUserParentFolderPrefix(part) + '/'}"></a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

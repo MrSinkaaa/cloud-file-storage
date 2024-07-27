@@ -11,22 +11,50 @@ document.getElementById('folder_input').addEventListener("change", function (e) 
 //file upload
 document.getElementById('file_upload').addEventListener("submit", function (e) {
     e.preventDefault();
-
     handleFiles(document.getElementById('file_input').files);
 })
 
 //folder upload
 document.getElementById('folder_upload').addEventListener("submit", function (e) {
     e.preventDefault();
-
     handleFolder(document.getElementById('folder_input').files);
+})
+
+//create folder
+document.getElementById('create_folder').addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    let folderName = document.getElementById('create_input').value;
+    const parentFolder = getParentFolder();
+
+    sendRequest('/folder/create?folderName=' + folderName + '&parentFolder=' + parentFolder);
+})
+
+document.getElementById('create_input').addEventListener('click', function (e) {
+    e.preventDefault();
+
+    const input = document.getElementById('create_input');
+    const label = document.querySelector("[for=" + e.target.id + "]");
+
+    label.setAttribute('hidden', true);
+    input.setAttribute('type', 'text');
+    input.style.width = '110px';
+
+    input.addEventListener('blur', function () {
+        label.removeAttribute('hidden');
+        if(input.value) {
+            label.innerHTML = input.value;
+        }
+        input.setAttribute('hidden', true);
+        input.style.width = '';
+    });
 })
 
 
 function handleFolder(files) {
     const formData = new FormData();
 
-    const parentFolder = getParentFolder() ? getParentFolder() + '/' : '';
+    const parentFolder = getParentFolder();
     formData.append('parentFolder', parentFolder);
 
     [...files].forEach(file => {
@@ -63,7 +91,7 @@ function sendFile(file) {
     let formData = new FormData();
     formData.append('file', file);
 
-    let parentFolder = getParentFolder() ? getParentFolder() + '/' : '';
+    let parentFolder = getParentFolder();
     formData.append('folderName', parentFolder);
 
     fetch('/files', {
@@ -85,7 +113,8 @@ function getParentFolder() {
     const parts = getPath('path').split('/')
         .filter(folder => folder !== '');
 
-    return parts[parts.length - 1];
+    const parentFolder = parts[parts.length - 1];
+    return parentFolder ? parentFolder + "/" : "";
 }
 
 function getPath(name) {

@@ -1,6 +1,7 @@
 package ru.mrsinkaaa.cloudfilestorage.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +18,7 @@ import java.util.Collections;
 
 import static ru.mrsinkaaa.cloudfilestorage.util.MinioRootFolderUtils.getUserRootFolderPrefix;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService, IUserService {
@@ -33,6 +35,7 @@ public class UserService implements UserDetailsService, IUserService {
     }
 
     public void registerUser(UserDTO userDTO) {
+        log.info("Registering user: {}", userDTO.getUsername());
         if(userRepository.findByUsername(userDTO.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException(userDTO.getUsername() + " already exists");
         }
@@ -43,6 +46,7 @@ public class UserService implements UserDetailsService, IUserService {
                 .build();
 
         userRepository.save(user);
+        log.info("User {} registered successfully", userDTO.getUsername());
         folderService.createFolder(user, getUserRootFolderPrefix(userDTO.getUsername()), null);
     }
 

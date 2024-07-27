@@ -12,7 +12,7 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     List<Folder> findByParentFolder(Folder parentFolder);
     Optional<Folder> findByFolderName(String folderName);
     Optional<Folder> findByOwnerAndFolderName(User owner, String folderName);
+    Optional<Folder> findByOwnerAndMinioObjectId(User owner, String minioObjectId);
     Optional<Folder> findByIdAndOwner(Long id, User owner);
-
-
+    List<Folder> findFoldersByOwnerAndFolderNameContainingIgnoreCase(User owner, String folderName);
 }

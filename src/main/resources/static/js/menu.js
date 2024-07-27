@@ -1,41 +1,65 @@
+const contextMenu = document.getElementById('context-menu');
 // Hide context menu on click outside
 document.addEventListener('click', function (e) {
-    document.getElementById('context-menu').style.display = 'none';
+    contextMenu.style.display = 'none';
 
 })
 
 // add event listener using event delegation
 document.addEventListener('contextmenu', function (e) {
-    if (e.target.closest('.card')) {
+    const card = e.target.closest('.card');
+
+    if (card) {
         e.preventDefault();
-        const contextMenu = document.getElementById('context-menu');
         contextMenu.style.display = 'block';
         contextMenu.style.left = e.pageX + 'px';
         contextMenu.style.top = e.pageY + 'px';
 
-        contextMenu.dataset.targetCard = e.target.closest('.card').querySelector('.card-title-text').textContent;
-        contextMenu.dataset.targetId = e.target.closest('.card').id;
-        contextMenu.dataset.type = e.target.closest('.card').dataset.type;
+        contextMenu.dataset.targetCard = card.querySelector('.card-title-text').textContent;
+        contextMenu.dataset.targetId = card.id;
+        contextMenu.dataset.type = card.dataset.type;
+
+        if (card.dataset.type === 'folder') {
+            document.getElementById('download').style.display = 'none';
+        } else {
+            document.getElementById('download').style.display = 'block';
+        }
     }
 })
 
 document.addEventListener('dblclick', function (e) {
-    if (e.target.closest('.card')) {
-        const fileName = e.target.closest('.card').querySelector('.card-title-text').textContent;
-        const filePath = getQueryParam(window.location, 'path');
-        window.location.assign('?path=' + filePath + fileName);
+    const card = e.target.closest('.card');
+    const type = card.dataset.type;
+
+    if (card && (type === 'folder')) {
+
+        const fileName = card.getAttribute('data-path');
+        const filePath = getQueryParam(window.location, 'path') || '';
+
+        if (filePath) {
+            window.location.assign(`?path=${fileName}`);
+        } else {
+            const url = new URL(window.location);
+            url.searchParams.set('path', fileName);
+            url.searchParams.delete('query');
+            url.pathname = '';
+
+            const decodedPath = decodeURIComponent(url);
+            window.location.assign(decodedPath);
+        }
+
     }
 })
 
 // menu actions
 document.getElementById('rename').addEventListener('click', function (e) {
-    const oldFileName = document.getElementById('context-menu').dataset.targetCard;
-    const id = document.getElementById('context-menu').dataset.targetId;
-    const type = document.getElementById('context-menu').dataset.type;
+    const oldFileName = contextMenu.dataset.targetCard;
+    const id = contextMenu.dataset.targetId;
+    const type = contextMenu.dataset.type;
     const newFileName = prompt('Enter new file name', oldFileName);
 
-    if(newFileName) {
-        if(type === 'file') {
+    if (newFileName) {
+        if (type === 'file') {
             sendRequest('/files?id=' + id + '&newName=' + newFileName, 'PATCH');
         } else {
             sendRequest('/folder/rename?id=' + id + '&newFolderName=' + newFileName, 'PATCH');
@@ -45,10 +69,10 @@ document.getElementById('rename').addEventListener('click', function (e) {
 })
 
 document.getElementById('delete').addEventListener('click', function (e) {
-    const id = document.getElementById('context-menu').dataset.targetId;
-    const type = document.getElementById('context-menu').dataset.type;
+    const id = contextMenu.dataset.targetId;
+    const type = contextMenu.dataset.type;
 
-    if(type === 'file') {
+    if (type === 'file') {
         sendRequest('/files?id=' + id, 'DELETE');
     } else {
         sendRequest('/folder/delete?id=' + id, 'DELETE');
@@ -56,10 +80,10 @@ document.getElementById('delete').addEventListener('click', function (e) {
 })
 
 document.getElementById('download').addEventListener('click', function (e) {
-    const id = document.getElementById('context-menu').dataset.targetId;
-    const type = document.getElementById('context-menu').dataset.type;
+    const id = contextMenu.dataset.targetId;
+    const type = contextMenu.dataset.type;
 
-    if(type === 'file') {
+    if (type === 'file') {
         downloadFile(`/files?id=${id}`);
     }
 })
@@ -142,7 +166,7 @@ const displayErrorModal = (error) => {
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById('error-modal');
 
-    if(modal) {
+    if (modal) {
         modal.style.display = 'block';
     }
 })

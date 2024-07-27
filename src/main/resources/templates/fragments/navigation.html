@@ -6,8 +6,8 @@
     <title>Cloud File Storage</title>
 </head>
 <body>
-<div th:fragment="navigation" class="nav">
-    <div class="logo">Cloud File Storage</div>
+<nav th:fragment="navigation" class="nav">
+    <div class="logo"><a th:href="@{'/?path='}">Cloud File Storage</a></div>
     <div th:if="${user != null}">
         <form class="search-form" role="search" th:action="@{/search}" method="get">
             <label class="search-label" for="search">Search for stuff</label>
@@ -23,6 +23,6 @@
     <div th:if="${user == null}">
         <button class="account-btn" th:href="@{/login}">Log In</button>
     </div>
-</div>
+</nav>
 </body>
 </html>

@@ -7,15 +7,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import ru.mrsinkaaa.cloudfilestorage.dto.ErrorDTO;
-import ru.mrsinkaaa.cloudfilestorage.service.StorageService;
+import ru.mrsinkaaa.cloudfilestorage.service.StorageViewService;
 import ru.mrsinkaaa.cloudfilestorage.service.UserService;
 
 import java.util.HashMap;
@@ -26,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    private final StorageService storageService;
+    private final StorageViewService storageViewService;
     private final UserService userService;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -39,17 +37,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ApplicationException.class)
-    public ModelAndView handleGlobalException(HttpServletRequest req, ApplicationException ex,
+    @ExceptionHandler(Exception.class)
+    public ModelAndView handleGlobalException(HttpServletRequest req, Exception ex,
                                               @AuthenticationPrincipal User user) {
 
-        log.error("Error message: {}, code: {}", ex.getMessage(), ex.getStatusCode());
+        log.error("Error message: {}", ex.getMessage());
 
         var owner = userService.findByUsername(user.getUsername());
-        ErrorDTO errorDTO = new ErrorDTO(ex.getStatusCode(), ex.getMessage());
+        ErrorDTO errorDTO = new ErrorDTO(ex.getMessage());
         String path = req.getParameter("path") != null ? req.getParameter("path") : "";
 
-        return storageService.getMainPageWithError(owner, path, errorDTO);
+        return storageViewService.getMainPageWithError(owner, path, errorDTO);
     }
 
 }
