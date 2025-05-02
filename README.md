@@ -24,7 +24,9 @@ Allows users to upload, browse, download and delete files via a clean web interf
 - **Spring Boot** (Web, MVC)  
 - **Thymeleaf**  
 - **Gradle** (or the Gradle Wrapper)  
-- **Docker & Docker Compose**  
+- **Docker & Docker Compose**
+- **Redis**
+- **MinIO**
 
 ---
 
